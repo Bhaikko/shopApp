@@ -6,9 +6,10 @@ export const UPDATE_PRODUCT = "UPDATE_PRODUCT";
 export const SET_PRODUCTS = "SET_PRODUCTS";
 
 export const deleteProduct = productId => {
-    return async dispatch => {
+  return async (dispatch, getState) => {
+    const token = getState().auth.token;
         const response = await fetch(
-            `https://shopsapp-ad041.firebaseio.com/products/${productId}.json`,
+            `https://shopsapp-ad041.firebaseio.com/products/${productId}.json?auth=${token}`,
             {
               method: "DELETE"
             }
@@ -25,10 +26,12 @@ export const deleteProduct = productId => {
 };
 
 export const createProduct = (title, description, imageUrl, price) => {
-  return async dispatch => {
+  return async (dispatch, getState) => {
+    const token = getState().auth.token;
+    const userId = getState().auth.userId;
     // Execute Async code
     const response = await fetch(
-      "https://shopsapp-ad041.firebaseio.com/products.json",
+      `https://shopsapp-ad041.firebaseio.com/products.json?auth=${token}`,
       {
         method: "POST",
         headers: {
@@ -38,7 +41,8 @@ export const createProduct = (title, description, imageUrl, price) => {
           title,
           description,
           imageUrl,
-          price
+          price,
+          ownerId: userId
         })
       }
     );
@@ -52,16 +56,18 @@ export const createProduct = (title, description, imageUrl, price) => {
         title,
         description,
         imageUrl,
-        price
+        price,
+        ownerId: userId
       }
     }); // dispatching the action
   };
 };
 
 export const updateProduct = (id, title, description, imageUrl) => {
-    return async dispatch => {
+    return async (dispatch, getState) => {
+        const token = getState().auth.token;
         const response = await fetch(
-            `https://shopsapp-ad041.firebaseio.com/products/${id}.json`,
+            `https://shopsapp-ad041.firebaseio.com/products/${id}.json?auth=${token}`,
             {
                 method: "PATCH",
                 headers: {
@@ -92,7 +98,8 @@ export const updateProduct = (id, title, description, imageUrl) => {
 };
 
 export const fetchProducts = () => {
-  return async dispatch => {
+  return async (dispatch, getState) => {
+    const userId = getState().auth.userId;
       try {
           const response = await fetch(
             "https://shopsapp-ad041.firebaseio.com/products.json"
@@ -109,7 +116,7 @@ export const fetchProducts = () => {
             loadedProducts.push(
               new Product(
                 key,
-                "u1",
+                resData[key].ownerId,
                 resData[key].title,
                 resData[key].imageUrl,
                 resData[key].description,
@@ -119,7 +126,8 @@ export const fetchProducts = () => {
           }
           dispatch({
             type: SET_PRODUCTS,
-            products: loadedProducts
+            products: loadedProducts,
+            userProducts: loadedProducts.filter(prop => prop.ownerId === userId) 
           });
       } catch (err) {
           throw err;

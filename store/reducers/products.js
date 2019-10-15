@@ -1,10 +1,9 @@
-import PRODUCTS from "./../../data/dummy-data";
 import * as productActions from "./../actions/products";
 import Product from "./../../models/product";
 
 const initialState = {
-  availableProducts: PRODUCTS,
-  userProducts: PRODUCTS.filter(product => product.ownerId === "u1")
+  availableProducts: [],
+  userProducts: []
 };
 
 const reducer = (state = initialState, action) => {
@@ -23,7 +22,7 @@ const reducer = (state = initialState, action) => {
     case productActions.CREATE_PRODUCT:
       const newProduct = new Product(
         action.productData.id,
-        "u1",
+        action.productData.ownerId,
         action.productData.title,
         action.productData.imageUrl,
         action.productData.description,
@@ -67,9 +66,7 @@ const reducer = (state = initialState, action) => {
     case productActions.SET_PRODUCTS:
       return {
         availableProducts: action.products,
-        userProducts: action.products.filter(
-          product => product.ownerId === "u1"
-        )
+        userProducts: action.userProducts
       };
 
     default:

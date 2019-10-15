@@ -1,8 +1,9 @@
 import React from 'react';
-import { Platform } from 'react-native';
-import { createAppContainer } from 'react-navigation';
+import { useDispatch } from 'react-redux';
+import { Platform, SafeAreaView, Button, View } from 'react-native';
+import { createAppContainer, createSwitchNavigator } from 'react-navigation';
 import { createStackNavigator } from 'react-navigation-stack';
-import { createDrawerNavigator } from 'react-navigation-drawer';
+import { createDrawerNavigator, DrawerNavigatorItems } from 'react-navigation-drawer';
 
 import Colors from './../constants/Colors';
 import ProductsOverviewScreen from './../screens/shop/ProductsOverviewScreen';
@@ -11,7 +12,11 @@ import CartScreen from './../screens/shop/CartScreen';
 import OrdersScreen from './../screens/shop/OrdersScreen';
 import UserProductsScreen from './../screens/user/UserProductsScreen';
 import EditProductScreen from './../screens/user/EditProductScreen';
+import AuthScreen from './../screens/user/AuthScreen';
+import StartUpScreen from './../screens/StartupScreen';
 import { Ionicons } from '@expo/vector-icons';
+
+import * as authActions from './../store/actions/auth';
 
 const defaultNavOptions = {
     headerStyle: {
@@ -59,14 +64,42 @@ const AdminNavigator = createStackNavigator({
     defaultNavigationOptions: defaultNavOptions
 });
 
-const shopNavigator = createDrawerNavigator({
+const ShopNavigator = createDrawerNavigator({
     Products: ProductsNavigator,
     Orders: OrdersNavigator,
     Admin: AdminNavigator
 }, {
     contentOptions: {
         activeTintColor: Colors.primary
+    },
+    // allows to add more content to side drawer instead of default
+    contentComponent: props => {
+        const dispatch = useDispatch();
+        return (
+            <View style={{ flex: 1, padding: 20 }}>
+                <SafeAreaView forceInset={{top: "always", horizontal: "never"}}>
+                    <DrawerNavigatorItems {...props} />
+                    <Button title="logout" color={Colors.primary} onPress={() => {
+                        dispatch(authActions.logout());
+                        props.navigation.navigate("Auth");
+                    }} />
+                </SafeAreaView>
+            </View>
+        );
     }
 });
 
-export default createAppContainer(shopNavigator);
+const AuthNavigator = createStackNavigator({
+    Auth: AuthScreen
+}, {
+    defaultNavigationOptions: defaultNavOptions
+});
+
+// createSwitchNavigator is used such that it is impossible to go to another navigator and one navigator is allowed in one state
+const MainNavigator = createSwitchNavigator({
+    StartUp: StartUpScreen,
+    Auth: AuthNavigator,
+    Shop: ShopNavigator
+});
+
+export default createAppContainer(MainNavigator);
